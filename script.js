@@ -132,7 +132,7 @@ async function loadBlogCards() {
     .map(
       (p) => `
       <a href="${p.url}" class="blog-card" target="_blank" rel="noopener">
-        <img src="${p.cover_image || "/images/blog/bienvenidos-xpertauth.jpg"}" alt="${esc(p.title)}" class="card-image">
+<img src="${p.cover_image || "images/blog/bienvenidos-xpertauth.jpg"}" alt="${esc(p.title)}" class="card-image">        
         <div class="card-content">
           <h3 class="card-title">${esc(p.title)}</h3>
           <p class="card-description">${esc(p.excerpt || "")}</p>
@@ -157,7 +157,7 @@ async function loadBlogCards() {
         } else if (/\.png$/i.test(src)) {
           img.src = src.replace(/\.png$/i, ".jpg");
         } else {
-          img.src = "/images/blog/bienvenidos-xpertauth.jpg";
+img.src = "images/blog/bienvenidos-xpertauth.jpg";          
         }
       },
       { once: true }
