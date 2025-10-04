@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - XpertAuth</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        /* Header */
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 2rem;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        .error {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            color: #c33;
+        }
+
+        /* Article Container */
+        .article-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Featured Image */
+        .featured-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Article */
+        article {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        /* Meta info */
+        .meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Typography */
+        article h1 {
+            font-size: 2.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        article h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+        }
+
+        article h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem;
+            color: #34495e;
+        }
+
+        article p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        article ul, article ol {
+            margin: 1.5rem 0 1.5rem 2rem;
+        }
+
+        article li {
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        article strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        article blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        article code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        article pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        article pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        /* Back button */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.8rem 1.5rem;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: #2980b9;
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            article {
+                padding: 2rem 1.5rem;
+            }
+
+            article h1 {
+                font-size: 2rem;
+            }
+
+            article h2 {
+                font-size: 1.5rem;
+            }
+
+            .featured-image {
+                height: 250px;
+            }
+
+            .meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="logo">XpertAuth Blog</a>
+            <div class="nav-links">
+                <a href="/">Inicio</a>
+                <a href="/blog">Blog</a>
+                <a href="/contacto">Contacto</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="article-container">
+        <a href="/blog" class="back-button">← Volver al Blog</a>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Cargando artículo...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 XpertAuth. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // Configuración
+        const GITHUB_USER = 'echejose';
+        const GITHUB_REPO = 'xpertauth-clean';
+        const GITHUB_BRANCH = 'main';
+
+        // Obtener slug de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+
+        // Elementos del DOM
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const contentEl = document.getElementById('content');
+
+        // Función para mostrar error
+        function showError(message) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.innerHTML = `
+                <h2>Error al cargar el artículo</h2>
+                <p>${message}</p>
+                <p><a href="/blog" style="color: #c33;">← Volver al blog</a></p>
+            `;
+        }
+
+        // Función para formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('es-ES', options);
+        }
+
+        // Función para extraer metadatos del markdown
+        function extractMetadata(markdown) {
+            const lines = markdown.split('\n');
+            const metadata = {
+                title: '',
+                excerpt: '',
+                date: '',
+                author: 'XpertAuth',
+                image: ''
+            };
+
+            // Extraer título (primera línea con #)
+            const titleLine = lines.find(line => line.startsWith('# '));
+            if (titleLine) {
+                metadata.title = titleLine.replace('# ', '').trim();
+            }
+
+            // Extraer excerpt (segunda línea con ##)
+            const excerptLine = lines.find(line => line.startsWith('## '));
+            if (excerptLine) {
+                metadata.excerpt = excerptLine.replace('## ', '').trim();
+            }
+
+            // Extraer fecha del slug (formato: post-YYYYMMDD)
+            const dateMatch = slug.match(/(\d{4})(\d{2})(\d{2})/);
+            if (dateMatch) {
+                const [, year, month, day] = dateMatch;
+                metadata.date = `${year}-${month}-${day}`;
+            }
+
+            return metadata;
+        }
+
+        // Cargar y renderizar el post
+        async function loadPost() {
+            if (!slug) {
+                showError('No se especificó ningún artículo.');
+                return;
+            }
+
+            try {
+                // URL del markdown en GitHub
+                const markdownUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/posts/${slug}.md`;
+                
+                // Fetch del markdown
+                const response = await fetch(markdownUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Artículo no encontrado');
+                }
+
+                const markdown = await response.text();
+                
+                // Extraer metadatos
+                const metadata = extractMetadata(markdown);
+
+                // Convertir markdown a HTML
+                const htmlContent = marked.parse(markdown);
+
+                // URL de la imagen
+                const imageUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/posts/${slug}.png`;
+
+                // Construir el HTML del artículo
+                const articleHTML = `
+                    <img src="${imageUrl}" alt="${metadata.title}" class="featured-image" onerror="this.style.display='none'">
+                    
+                    <article>
+                        <div class="meta">
+                            <div class="meta-item">
+                                📅 ${metadata.date ? formatDate(metadata.date) : 'Fecha no disponible'}
+                            </div>
+                            <div class="meta-item">
+                                ✍️ ${metadata.author}
+                            </div>
+                        </div>
+
+                        ${htmlContent}
+                    </article>
+                `;
+
+                // Actualizar el título de la página
+                document.title = `${metadata.title} - XpertAuth Blog`;
+
+                // Mostrar contenido
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+                contentEl.innerHTML = articleHTML;
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'No se pudo cargar el artículo. Por favor, intenta de nuevo más tarde.');
+            }
+        }
+
+        // Cargar el post cuando la página esté lista
+        loadPost();
+    </script>
+</body>
+</html>
