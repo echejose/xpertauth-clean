@@ -381,8 +381,8 @@
         // Función para renderizar posts
         function renderPosts(posts) {
             postsContainer.innerHTML = posts.map(post => `
-                <a href="${post.url || `post.html?slug=${post.id}`}" class="post-card">
-                    <img src="${getImageUrl(post.cover_image)}" alt="${post.title}" class="post-image" onerror="this.src='https://via.placeholder.com/600x400/667eea/ffffff?text=XpertAuth+Blog'">
+                <a href="post.html?slug=${post.slug || post.id}" class="post-card">
+                <img src="${getImageUrl(post.cover_image)}" alt="${post.title}" class="post-image" onerror="this.src='https://via.placeholder.com/600x400/667eea/ffffff?text=XpertAuth+Blog'">
                     <div class="post-content">
                         <div class="post-date">${formatDate(post.published_at)}</div>
                         <h2 class="post-title">${post.title}</h2>
