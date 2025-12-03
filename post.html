@@ -249,81 +249,87 @@
         const GITHUB_USER = 'echejose';
         const GITHUB_REPO = 'xpertauth-clean';
         const GITHUB_BRANCH = 'main';
-        
-        // Obtener slug de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('slug');
-        
-        // Elementos del DOM
-        const loadingEl = document.getElementById('loading');
-        const errorEl = document.getElementById('error');
-        const contentEl = document.getElementById('content');
-        
-        // Función para mostrar error
-        function showError(message) {
-            loadingEl.style.display = 'none';
-            errorEl.style.display = 'block';
-            errorEl.innerHTML = `
-                <h2>Error al cargar el artículo</h2>
-                <p>${message}</p>
-                <p><a href="/blog.html" style="color: #c33;">← Volver al blog</a></p>
-            `;
+       // Obtener parámetros desde la URL
+const params = new URLSearchParams(window.location.search);
+let id = params.get('id');
+let slug = params.get('slug');
+
+// Elementos del DOM
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('error');
+const contentEl = document.getElementById('content');
+
+// Función para mostrar error
+function showError(message) {
+    loadingEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.innerHTML = `
+        <h2>Error al cargar el artículo</h2>
+        <p>${message}</p>
+        <p><a href="/blog.html" style="color: #c33;">↩ Volver al blog</a></p>
+    `;
+}
+
+// Cargar artículo desde Supabase
+async function loadPost() {
+    // Determinar filtro
+    let filter = null;
+
+    if (id) {
+        filter = { column: 'id', value: id };
+    } else if (slug) {
+        filter = { column: 'slug', value: slug };
+    } else {
+        showError('No se especificó ningún artículo.');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('blog_posts')
+            .select('*')
+            .eq(filter.column, filter.value);
+
+        if (error || !data || data.length === 0) {
+            showError('Artículo no encontrado.');
+            return;
         }
-        
-        // Función para formatear fecha
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return date.toLocaleDateString('es-ES', options);
-        }
-        
-        // Función para extraer frontmatter del markdown
-        function parseFrontmatter(markdown) {
-            const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
-            const match = markdown.match(frontmatterRegex);
-            
-            if (!match) {
-                // No hay frontmatter, devolver todo como contenido
-                return {
-                    metadata: {},
-                    content: markdown
-                };
-            }
-            
-            const frontmatterText = match[1];
-            const content = match[2];
-            
-            // Parsear el frontmatter YAML
-            const metadata = {};
-            const lines = frontmatterText.split('\n');
-            
-            lines.forEach(line => {
-                const colonIndex = line.indexOf(':');
-                if (colonIndex > -1) {
-                    const key = line.substring(0, colonIndex).trim();
-                    let value = line.substring(colonIndex + 1).trim();
-                    
-                    // Remover comillas del valor
-                    if ((value.startsWith('"') && value.endsWith('"')) || 
-                        (value.startsWith("'") && value.endsWith("'"))) {
-                        value = value.slice(1, -1);
-                    }
-                    
-                    metadata[key] = value;
-                }
-            });
-            
-            return {
-                metadata: metadata,
-                content: content.trim()
-            };
-        }
-        
-        // Cargar y renderizar el post
-        async function loadPost() {
-            if (!slug) {
-                showError('No se especificó ningún artículo.');
-                return;
+
+        // Obtenemos el artículo
+        const post = data[0];
+
+        // Convertir markdown del campo "content"
+        const htmlContent = marked.parse(post.content || '');
+
+        // Construir el HTML del artículo
+        const articleHTML = `
+            ${post.cover_image ? `<img src="${post.cover_image}" alt="${post.title}" class="featured-image">` : ''}
+            <article>
+                <h1>${post.title}</h1>
+
+                <div class="meta-item">
+                    🗓 ${post.published_at ? formatDate(post.published_at) : 'Fecha no disponible'}
+                </div>
+                <div class="meta-item">
+                    ✍️ XpertAuth
+                </div>
+
+                ${post.excerpt ? `<p style="font-size: 1.15rem; font-style: italic; margin-bottom: 2rem;">${post.excerpt}</p>` : ''}
+                ${htmlContent}
+            </article>
+        `;
+
+        // Mostrar el resultado
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+        contentEl.innerHTML = articleHTML;
+
+    } catch (error) {
+        console.error(error);
+        showError('No se pudo cargar el artículo. Intenta de nuevo más tarde.');
+    }
+}
+
             }
             
             try {
