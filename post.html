@@ -245,132 +245,150 @@
         <p>&copy; 2025 XpertAuth. Todos los derechos reservados.</p>
     </footer>
     <script>
-       <script>
-// =========================================
-//  CONFIGURACIÓN
-// =========================================
-
-// Tu instancia Supabase
-const supabaseUrl = "https://gpanqnyxmzpbnlixcttw.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwYW5xbnl4bXpwYm5saXhjdHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5ODY0NjAsImV4cCI6MjA2OTU2MjQ2MH0.wYQFfLuKlSY94eHES691SF7jrMHVfRFGrXsq2-CFbAk";   // ← IMPORTANTE: coloca tu PUBLIC anon key
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-// Elementos del DOM
-const loadingEl = document.getElementById("loading");
-const errorEl = document.getElementById("error");
-const contentEl = document.getElementById("content");
-
-// =========================================
-//  UTILIDADES
-// =========================================
-
-function showError(message) {
-    loadingEl.style.display = "none";
-    errorEl.style.display = "block";
-    errorEl.innerHTML = `
-        <h2>Error al cargar el artículo</h2>
-        <p>${message}</p>
-        <p><a href="/blog.html" style="color:#c33;">↩ Volver al blog</a></p>
-    `;
-}
-
-function formatDate(dateString) {
-    if (!dateString) return "Fecha no disponible";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-    });
-}
-
-// =========================================
-//  OBTENER PARAMETROS DE LA URL
-// =========================================
-
-const params = new URLSearchParams(window.location.search);
-let id = params.get("id");
-let slug = params.get("slug");
-
-let filter = null;
-
-if (id) {
-    filter = { column: "id", value: id };
-} else if (slug) {
-    filter = { column: "slug", value: slug };
-} else {
-    showError("No se seleccionó ningún artículo.");
-    throw new Error("Sin ID o slug");
-}
-
-// =========================================
-//  CARGAR EL ARTÍCULO DESDE SUPABASE
-// =========================================
-
-async function loadPost() {
-    try {
-        // 1. Consultar Supabase
-        const { data, error } = await supabaseClient
-            .from("blog_posts")
-            .select("*")
-            .eq(filter.column, filter.value)
-            .limit(1);
-
-        if (error || !data || data.length === 0) {
-            showError("Artículo no encontrado.");
-            return;
+        // Configuración
+        const GITHUB_USER = 'echejose';
+        const GITHUB_REPO = 'xpertauth-clean';
+        const GITHUB_BRANCH = 'main';
+        
+        // Obtener slug de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        
+        // Elementos del DOM
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const contentEl = document.getElementById('content');
+        
+        // Función para mostrar error
+        function showError(message) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.innerHTML = `
+                <h2>Error al cargar el artículo</h2>
+                <p>${message}</p>
+                <p><a href="/blog.html" style="color: #c33;">← Volver al blog</a></p>
+            `;
         }
-
-        const post = data[0];
-
-        // 2. Convertir el contenido
-        const htmlContent =
-            marked.parse(post.content || "").replaceAll("<img ", "<img style='max-width:100%;height:auto;' ");
-
-        // 3. Construir el HTML
-        const articleHTML = `
-            ${post.cover_image ? `
-                <img src="${post.cover_image}"
-                     alt="${post.title}"
-                     class="featured-image"
-                     onerror="this.style.display='none'">`
-            : ""}
-
-            <article>
-                <h1>${post.title}</h1>
-
-                <div class="meta-item">
-                    🗓 ${formatDate(post.published_at)}
-                </div>
-
-                <div class="meta-item">
-                    ✍️ XpertAuth
-                </div>
-
-                ${post.excerpt ? `
-                    <p style="font-size:1.15rem; font-style:italic; margin-bottom:2rem;">
-                        ${post.excerpt}
-                    </p>` : ""}
-
-                ${htmlContent}
-            </article>
-        `;
-
-        // 4. Renderizar
-        loadingEl.style.display = "none";
-        contentEl.style.display = "block";
-        contentEl.innerHTML = articleHTML;
-
-    } catch (err) {
-        console.error(err);
-        showError("No se pudo cargar el artículo. Intente nuevamente.");
-    }
-}
-
-// Ejecutar
-loadPost();
-</script>
-
+        
+        // Función para formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('es-ES', options);
+        }
+        
+        // Función para extraer frontmatter del markdown
+        function parseFrontmatter(markdown) {
+            const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+            const match = markdown.match(frontmatterRegex);
+            
+            if (!match) {
+                // No hay frontmatter, devolver todo como contenido
+                return {
+                    metadata: {},
+                    content: markdown
+                };
+            }
+            
+            const frontmatterText = match[1];
+            const content = match[2];
+            
+            // Parsear el frontmatter YAML
+            const metadata = {};
+            const lines = frontmatterText.split('\n');
+            
+            lines.forEach(line => {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > -1) {
+                    const key = line.substring(0, colonIndex).trim();
+                    let value = line.substring(colonIndex + 1).trim();
+                    
+                    // Remover comillas del valor
+                    if ((value.startsWith('"') && value.endsWith('"')) || 
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    
+                    metadata[key] = value;
+                }
+            });
+            
+            return {
+                metadata: metadata,
+                content: content.trim()
+            };
+        }
+        
+        // Cargar y renderizar el post
+        async function loadPost() {
+            if (!slug) {
+                showError('No se especificó ningún artículo.');
+                return;
+            }
+            
+            try {
+                // URL del markdown en GitHub
+                const markdownUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/posts/${slug}.md`;
+                
+                // Fetch del markdown
+                const response = await fetch(markdownUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Artículo no encontrado');
+                }
+                
+                const markdownRaw = await response.text();
+                
+                // Extraer frontmatter y contenido
+                const { metadata, content } = parseFrontmatter(markdownRaw);
+                
+                // Convertir markdown a HTML (solo el contenido, sin frontmatter)
+                const htmlContent = marked.parse(content);
+                
+                // Obtener datos del frontmatter
+                const title = metadata.title || 'Artículo sin título';
+                const excerpt = metadata.excerpt || '';
+                const coverImage = metadata.cover_image || '';
+                const publishedAt = metadata.published_at || '';
+                
+                // Construir el HTML del artículo
+                const articleHTML = `
+                    ${coverImage ? `<img src="${coverImage}" alt="${title}" class="featured-image" onerror="this.style.display='none'">` : ''}
+                    
+                    <article>
+                        <h1>${title}</h1>
+                        
+                        <div class="meta">
+                            <div class="meta-item">
+                                📅 ${publishedAt ? formatDate(publishedAt) : 'Fecha no disponible'}
+                            </div>
+                            <div class="meta-item">
+                                ✍️ XpertAuth
+                            </div>
+                        </div>
+                        
+                        ${excerpt ? `<p style="font-size: 1.15rem; color: #555; font-style: italic; margin-bottom: 2rem;">${excerpt}</p>` : ''}
+                        
+                        ${htmlContent}
+                    </article>
+                `;
+                
+                // Actualizar el título de la página
+                document.title = `${title} - XpertAuth Blog`;
+                
+                // Mostrar contenido
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+                contentEl.innerHTML = articleHTML;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'No se pudo cargar el artículo. Por favor, intenta de nuevo más tarde.');
+            }
+        }
+        
+        // Cargar el post cuando la página esté lista
+        loadPost();
     </script>
 </body>
 </html>
