@@ -341,15 +341,20 @@
                 
                 // Extraer frontmatter y contenido
                 const { metadata, content } = parseFrontmatter(markdownRaw);
-                
-                // Convertir markdown a HTML (solo el contenido, sin frontmatter)
-                const htmlContent = marked.parse(content);
-                
-                // Obtener datos del frontmatter
-                const title = metadata.title || 'Artículo sin título';
-                const excerpt = metadata.excerpt || '';
-                const coverImage = metadata.cover_image || '';
-                const publishedAt = metadata.published_at || '';
+
+// 1) Limpiar posibles "=" al inicio en cover_image (y espacios)
+const coverImage = (metadata.cover_image || "").toString().trim().replace(/^=+/, "");
+
+// 2) Limpiar también imágenes embebidas en el markdown tipo ![] (=https://...)
+const cleanedContent = content.replace(/\]\(\s*=+/g, "](");
+
+// Convertir markdown a HTML (solo el contenido, sin frontmatter)
+const htmlContent = marked.parse(cleanedContent);
+
+// Obtener datos del frontmatter
+const title = metadata.title || 'Artículo sin título';
+const excerpt = metadata.excerpt || '';
+const publishedAt = metadata.published_at || '';
                 
                 // Construir el HTML del artículo
                 const articleHTML = `
